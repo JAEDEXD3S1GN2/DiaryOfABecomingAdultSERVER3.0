@@ -7,7 +7,7 @@ import {
   type Comment, type InsertComment,
   type Message, type InsertMessage,
   type HomeImage
-} from "../DOABAServer/shared/schema";
+} from "./shared/schema";
 
 export interface IStorage {
   // Users
@@ -141,3 +141,4 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+
