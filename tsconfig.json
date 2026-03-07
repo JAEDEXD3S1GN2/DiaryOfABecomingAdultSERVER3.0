@@ -9,13 +9,13 @@
     "noEmit": false,
     "outDir": "./dist",
     "rootDir": ".",
-    "module": "commonjs",
+    "module": "es2015",
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "preserve",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
-    "moduleResolution": "bundler",
+   // "moduleResolution": "bundler",
     "baseUrl": ".",
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node"],
@@ -25,4 +25,5 @@
     }
   }
 }
+
 
