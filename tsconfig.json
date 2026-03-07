@@ -11,6 +11,7 @@
     "jsx": "preserve",
     "esModuleInterop": true,
     "skipLibCheck": true,
+    "outDir": "dist",
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
     "baseUrl": ".",
@@ -22,3 +23,4 @@
     }
   }
 }
+
