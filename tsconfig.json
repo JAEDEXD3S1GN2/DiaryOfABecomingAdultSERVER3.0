@@ -1,6 +1,6 @@
 {
   // "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
-  "include": ["server/**/*", "index.ts", "shared/**/*", "scripts/**/*", "src/types/**/*"],
+  "include": ["server/**/*", "index.ts", "shared/**/*", "scripts/**/*", "src/types/**/*", "drizzle.config.ts"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
     "incremental": true,
@@ -25,3 +25,4 @@
     }
   }
 }
+
