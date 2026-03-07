@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { api } from "../DOABAServer/shared/routes";
+import { api } from "./shared/routes";
 import { z } from "zod";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -415,3 +415,4 @@ app.delete(api.comments.delete.path, authenticateToken, async (req: Request, res
 
   return httpServer;
 }
+
