@@ -14,8 +14,8 @@
     "jsx": "preserve",
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
-   // "moduleResolution": "bundler",
+//  "allowImportingTsExtensions": true,
+    "moduleResolution": "bundler",
     "baseUrl": ".",
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node"],
@@ -25,5 +25,6 @@
     }
   }
 }
+
 
 
