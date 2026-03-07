@@ -4,9 +4,11 @@
   "compilerOptions": {
     "incremental": true,
     "tsBuildInfoFile": "./node_modules/typescript/tsbuildinfo",
-    "noEmit": true,
-    "module": "ESNext",
     "strict": true,
+     "noEmit": false,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "module": "CommonJS",
     "lib": ["esnext", "dom", "dom.iterable"],
     "jsx": "preserve",
     "esModuleInterop": true,
@@ -22,5 +24,3 @@
     }
   }
 }
-
-
