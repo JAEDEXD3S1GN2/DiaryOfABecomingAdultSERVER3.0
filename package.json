@@ -8,9 +8,15 @@
     "dev": "concurrently \"npm run dev:server\"",
     "dev:server": "tsx index.ts",
     "dev:client": "vite --config vite.config.ts",
+
     "build": "tsc",
-    "start": "node dist/index.js",
-    "seed:admin": "tsx scripts/seedAdmin.ts"
+    
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "seed:admin": "tsx scripts/seedAdmin.ts",
+    "start": "npm run db:migrate && npm run seed:admin && node dist/index.js",
+    
   },
   "keywords": [],
   "author": "",
