@@ -61,7 +61,7 @@ app.use(
     },
   }),
     cors({
-    origin: ["http://localhost:5173"],
+    origin: ["https://diary-of-a-becoming-adult.vercel.app"],
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
     credentials: true,
   })
@@ -143,3 +143,4 @@ app.use((req, res, next) => {
     },
   );
 })();
+
