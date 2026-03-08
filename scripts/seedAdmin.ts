@@ -1,28 +1,42 @@
+// scripts/seedAdmin.ts
 import { db } from "../db";
 import { users } from "../shared/schema";
-import { scrypt, randomBytes } from "crypto";
-import "dotenv/config";
-import { promisify } from "util";
+import { eq } from "drizzle-orm";
+import crypto from "crypto";
 
-const scryptAsync = promisify(scrypt);
-
-async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
+function hashPassword(password: string): string {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `${hash}.${salt}`;
 }
 
 async function seedAdmin() {
-  const hashedPassword = await hashPassword("Admin123");
+  const email = "elizabetholuwaloni@gmail.com";
+
+  // Check if admin already exists
+  const existing = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+
+  if (existing.length > 0) {
+    console.log("Admin user already exists, skipping seed.");
+    process.exit(0);
+  }
 
   await db.insert(users).values({
     name: "Oluwaloni Elizabeth",
-    email: "elizabetholuwaloni@gmail.com",
-    password: hashedPassword,
+    email,
+    password: hashPassword("your-admin-password"),
     role: "admin",
   });
 
-  console.log("Admin created successfully");
+  console.log("Admin user seeded successfully.");
+  process.exit(0);
 }
 
-seedAdmin();
+seedAdmin().catch((err) => {
+  console.error("Seed failed:", err);
+  process.exit(1);
+});
