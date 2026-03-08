@@ -1,5 +1,4 @@
 {
-  // "include": ["client/src/**/*", "shared/**/*", "server/**/*"],
   "include": ["server/**/*", "index.ts", "shared/**/*", "scripts/**/*", "src/types/**/*", "drizzle.config.ts"],
   "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
@@ -9,24 +8,17 @@
     "noEmit": false,
     "outDir": "./dist",
     "rootDir": ".",
-    "module": "es2015",
+    "module": "CommonJS",
     "target": "ES2020",
-    "lib": ["esnext", "dom", "dom.iterable"],
-    "jsx": "preserve",
+    "lib": ["esnext"],
     "esModuleInterop": true,
     "skipLibCheck": true,
-//  "allowImportingTsExtensions": true,
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "baseUrl": ".",
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node"],
     "paths": {
-      "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
     }
   }
 }
-
-
-
-
