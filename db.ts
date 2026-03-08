@@ -3,7 +3,6 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import pg from "pg";
 import * as schema from "./shared/schema";
 import "dotenv/config";
-import { ClientConfig } from "tls"; // Node.js built-in type
 
 const { Pool } = pg;
 
@@ -23,15 +22,14 @@ for (const env of requiredEnv) {
 // Create pg Pool with SSL enabled (required by Koyeb)
 export const pool = new Pool({
   host: process.env.DATABASE_HOST,
-  port: 5432, // default Postgres port
+  port: 5432,
   user: process.env.DATABASE_USER,
   password: process.env.DATABASE_PASSWORD,
   database: process.env.DATABASE_NAME,
-    ssl: {
-    rejectUnauthorized: false, // allow self-signed / hosted SSL
-  } as ClientConfig, // type assertion to satisfy TypeScript
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 // Initialize Drizzle ORM with the pool and your schema
 export const db = drizzle(pool, { schema });
-
