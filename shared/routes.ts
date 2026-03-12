@@ -119,6 +119,18 @@ export const api = {
         401: errorSchemas.unauthorized,
       },
     },
+
+    update: {
+      method: 'PATCH' as const,
+      path: '/api/comments/:id' as const,
+      input: z.object({ content: z.string() }),
+      responses: {
+        200: z.custom<typeof comments.$inferSelect>(),
+        401: errorSchemas.unauthorized,
+        404: errorSchemas.notFound,
+      },
+    },
+    
     delete: {
       method: 'DELETE' as const,
       path: '/api/comments/:id' as const,
@@ -196,3 +208,4 @@ export function buildUrl(path: string, params?: Record<string, string | number>)
   }
   return url;
 }
+
