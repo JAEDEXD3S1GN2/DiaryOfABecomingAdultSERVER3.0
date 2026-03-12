@@ -324,6 +324,34 @@ app.delete(api.comments.delete.path, authenticateToken, async (req: Request, res
   }
 });
 
+app.patch(api.comments.update.path, authenticateToken, async (req: Request, res: Response) => {
+  const commentId = Number(req.params.id);
+  const userId = (req as any).user.id;
+  const userRole = (req as any).user.role;
+  const { content } = req.body;
+
+  try {
+    const comment = await db.select().from(comments).where(eq(comments.id, commentId));
+
+    if (!comment[0]) return res.status(404).json({ message: "Comment not found" });
+
+    // Only the author of the comment or an admin can edit
+    if (comment[0].userId !== userId && userRole !== "admin") {
+      return res.status(403).json({ message: "Not authorized to edit this comment" });
+    }
+
+    const [updated] = await db
+      .update(comments)
+      .set({ content })
+      .where(eq(comments.id, commentId))
+      .returning();
+
+    res.status(200).json(updated);
+  } catch (err) {
+    res.status(400).json({ message: "Failed to update comment" });
+  }
+});  
+
 
   app.get(api.posts.list.path, async (req, res) => {
     const posts = await storage.getBlogPosts(req.query.genre as string);
@@ -415,4 +443,5 @@ app.delete(api.comments.delete.path, authenticateToken, async (req: Request, res
 
   return httpServer;
 }
+
 
