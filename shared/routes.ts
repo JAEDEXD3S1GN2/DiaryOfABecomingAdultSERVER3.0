@@ -101,6 +101,24 @@ export const api = {
         401: errorSchemas.unauthorized,
       },
     },
+    like: {
+      method: 'POST' as const,
+      path: '/api/posts/:id/like' as const,
+      responses: {
+        200: z.object({ post: z.custom<typeof blogPosts.$inferSelect>(), liked: z.boolean() }),
+        401: errorSchemas.unauthorized,
+        404: errorSchemas.notFound,
+      },
+    },
+    unlike: {
+      method: 'DELETE' as const,
+      path: '/api/posts/:id/like' as const,
+      responses: {
+        200: z.object({ post: z.custom<typeof blogPosts.$inferSelect>(), liked: z.boolean() }),
+        401: errorSchemas.unauthorized,
+        404: errorSchemas.notFound,
+      },
+    },
   },
   comments: {
     list: {
