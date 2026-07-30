@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -37,6 +37,24 @@ export const comments = pgTable("comments", {
   postId: integer("post_id").references(() => blogPosts.id).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const postLikes = pgTable("post_likes", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => blogPosts.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  postUserIdx: uniqueIndex("post_likes_post_user_idx").on(table.postId, table.userId),
+}));
+
+export const postViews = pgTable("post_views", {
+  id: serial("id").primaryKey(),
+  postId: integer("post_id").references(() => blogPosts.id).notNull(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  postUserIdx: uniqueIndex("post_views_post_user_idx").on(table.postId, table.userId),
+}));
 
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
@@ -79,6 +97,28 @@ export const commentsRelations = relations(comments, ({ one }) => ({
   }),
 }));
 
+export const postLikesRelations = relations(postLikes, ({ one }) => ({
+  user: one(users, {
+    fields: [postLikes.userId],
+    references: [users.id],
+  }),
+  post: one(blogPosts, {
+    fields: [postLikes.postId],
+    references: [blogPosts.id],
+  }),
+}));
+
+export const postViewsRelations = relations(postViews, ({ one }) => ({
+  user: one(users, {
+    fields: [postViews.userId],
+    references: [users.id],
+  }),
+  post: one(blogPosts, {
+    fields: [postViews.postId],
+    references: [blogPosts.id],
+  }),
+}));
+
 // Schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, role: true, blogsOpened: true, commentsMade: true });
 export const insertBlogPostSchema = createInsertSchema(blogPosts).omit({ id: true, createdAt: true, updatedAt: true, views: true, likes: true, dislikes: true });
@@ -95,3 +135,5 @@ export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type HomeImage = typeof homeImages.$inferSelect;
+export type PostLike = typeof postLikes.$inferSelect;
+export type PostView = typeof postViews.$inferSelect;
