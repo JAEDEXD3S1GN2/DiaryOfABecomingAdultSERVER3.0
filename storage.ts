@@ -1,7 +1,7 @@
 import { db } from "./db";
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, sql } from "drizzle-orm";
 import {
-  users, blogPosts, comments, messages, homeImages,
+  users, blogPosts, comments, messages, homeImages, postLikes, postViews,
   type User, type InsertUser,
   type BlogPost, type InsertBlogPost,
   type Comment, type InsertComment,
@@ -36,6 +36,12 @@ export interface IStorage {
 
   // Home Images
   getHomeImages(type?: string): Promise<HomeImage[]>;
+
+  // Likes & Views
+  hasUserLikedPost(postId: number, userId: number): Promise<boolean>;
+  likePost(postId: number, userId: number): Promise<BlogPost>;
+  unlikePost(postId: number, userId: number): Promise<BlogPost>;
+  recordView(postId: number, userId: number): Promise<BlogPost>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -137,6 +143,63 @@ export class DatabaseStorage implements IStorage {
       query = query.where(eq(homeImages.type, type)) as any;
     }
     return await query;
+  }
+
+  async hasUserLikedPost(postId: number, userId: number): Promise<boolean> {
+    const existing = await db.select().from(postLikes)
+      .where(and(eq(postLikes.postId, postId), eq(postLikes.userId, userId)));
+    return existing.length > 0;
+  }
+
+  async likePost(postId: number, userId: number): Promise<BlogPost> {
+    // onConflictDoNothing relies on the post_likes_post_user_idx unique index,
+    // so a duplicate like request (double click, retry, etc.) never double-counts.
+    const inserted = await db.insert(postLikes)
+      .values({ postId, userId })
+      .onConflictDoNothing({ target: [postLikes.postId, postLikes.userId] })
+      .returning();
+
+    if (inserted.length > 0) {
+      await db.update(blogPosts)
+        .set({ likes: sql`${blogPosts.likes} + 1` })
+        .where(eq(blogPosts.id, postId));
+    }
+
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, postId));
+    return post;
+  }
+
+  async unlikePost(postId: number, userId: number): Promise<BlogPost> {
+    const deleted = await db.delete(postLikes)
+      .where(and(eq(postLikes.postId, postId), eq(postLikes.userId, userId)))
+      .returning();
+
+    if (deleted.length > 0) {
+      await db.update(blogPosts)
+        .set({ likes: sql`GREATEST(${blogPosts.likes} - 1, 0)` })
+        .where(eq(blogPosts.id, postId));
+    }
+
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, postId));
+    return post;
+  }
+
+  async recordView(postId: number, userId: number): Promise<BlogPost> {
+    // Same onConflictDoNothing pattern: a user re-opening the same post never
+    // adds another row to post_views, so blogPosts.views only grows once per user.
+    const inserted = await db.insert(postViews)
+      .values({ postId, userId })
+      .onConflictDoNothing({ target: [postViews.postId, postViews.userId] })
+      .returning();
+
+    if (inserted.length > 0) {
+      await db.update(blogPosts)
+        .set({ views: sql`${blogPosts.views} + 1` })
+        .where(eq(blogPosts.id, postId));
+    }
+
+    const [post] = await db.select().from(blogPosts).where(eq(blogPosts.id, postId));
+    return post;
   }
 }
 
