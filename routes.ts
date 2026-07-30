@@ -37,6 +37,19 @@ const authenticateToken = (req: Request, res: Response, next: NextFunction) => {
   });
 };
 
+// Decodes the token when present but never rejects the request, so public
+// routes (like GET /api/posts/:id) can tell who's viewing without requiring login.
+const optionalAuth = (req: Request, res: Response, next: NextFunction) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return next();
+
+  jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
+    if (!err) (req as any).user = user;
+    next();
+  });
+};
+
 const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   const user = (req as any).user;
   if (!user || user.role !== 'admin') {
@@ -373,12 +386,63 @@ app.patch(api.comments.update.path, authenticateToken, async (req: Request, res:
    *       200:
    *         description: Blog post details
    */
-  app.get(api.posts.get.path, async (req, res) => {
-    const post = await storage.getBlogPost(Number(req.params.id));
+  app.get(api.posts.get.path, optionalAuth, async (req, res) => {
+    const postId = Number(req.params.id);
+    let post = await storage.getBlogPost(postId);
     if (!post) return res.status(404).json({ message: "Post not found" });
     const author = post.authorId ? await storage.getUser(post.authorId) : null;
     if (author) await storage.incrementUserBlogs(author.id);
-    res.json({ ...post, author });
+
+    const userId = (req as any).user?.id;
+    let likedByMe = false;
+    if (userId) {
+      // Only counts a view the first time this user opens this post -
+      // recordView is a no-op (no views++) on every subsequent visit.
+      post = await storage.recordView(postId, userId);
+      likedByMe = await storage.hasUserLikedPost(postId, userId);
+    }
+
+    res.json({ ...post, author, likedByMe });
+  });
+
+  /**
+   * @openapi
+   * /api/posts/{id}/like:
+   *   post:
+   *     summary: Like a blog post
+   *     tags: [Posts]
+   *     security:
+   *       - bearerAuth: []
+   */
+  app.post(api.posts.like.path, authenticateToken, async (req: Request, res: Response) => {
+    const postId = Number(req.params.id);
+    const userId = (req as any).user.id;
+
+    const existingPost = await storage.getBlogPost(postId);
+    if (!existingPost) return res.status(404).json({ message: "Post not found" });
+
+    const post = await storage.likePost(postId, userId);
+    res.json({ post, liked: true });
+  });
+
+  /**
+   * @openapi
+   * /api/posts/{id}/like:
+   *   delete:
+   *     summary: Unlike a blog post
+   *     tags: [Posts]
+   *     security:
+   *       - bearerAuth: []
+   */
+  app.delete(api.posts.unlike.path, authenticateToken, async (req: Request, res: Response) => {
+    const postId = Number(req.params.id);
+    const userId = (req as any).user.id;
+
+    const existingPost = await storage.getBlogPost(postId);
+    if (!existingPost) return res.status(404).json({ message: "Post not found" });
+
+    const post = await storage.unlikePost(postId, userId);
+    res.json({ post, liked: false });
   });
 
   /**
